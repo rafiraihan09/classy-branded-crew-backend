@@ -1,0 +1,26 @@
+DB_URL=mysql://root:rahasia@tcp(127.0.0.1:3306)/classy_branded_crew_db
+MIGRATE_PATH=pkg/database/migrations
+
+# Target untuk membuat file migrasi baru
+# Cara pakai: make create name=nama_migrasi
+create:
+	migrate create -ext sql -dir $(MIGRATE_PATH) -seq $(name)
+
+# Target untuk menjalankan semua migrasi (Up)
+up:
+	migrate -path $(MIGRATE_PATH) -database "$(DB_URL)" up
+
+# Target untuk membatalkan 1 migrasi terakhir (Down)
+down:
+	migrate -path $(MIGRATE_PATH) -database "$(DB_URL)" down 1
+
+# Target untuk melihat versi migrasi saat ini
+version:
+	migrate -path $(MIGRATE_PATH) -database "$(DB_URL)" version
+
+# Target untuk memperbaiki kondisi "Dirty" (Jika migrasi gagal di tengah jalan)
+# Cara pakai: make force version=1
+force:
+	migrate -path $(MIGRATE_PATH) -database "$(DB_URL)" force $(version)
+
+.PHONY: create up down version force
