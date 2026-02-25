@@ -20,14 +20,23 @@ jobs:
           script: |
             set -e
 
-            APP_DIR="/opt/classy-backend"
+            APP_DIR="/opt/classy-backend/classy-branded-crew-backend"
             SERVICE="classy-backend"
 
             echo "==> Go to app directory"
             cd "$APP_DIR"
 
+            echo "==> Configure git SSH"
+            mkdir -p ~/.ssh
+            echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINww89TveD+Lm+H75jb1N9TFKHgq3F9Ury8iR96q5Vd7 classy-backend-deploy" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+            # Ensure origin is the SSH URL (adjust org/repo)
+            git remote set-url origin git@github.com:YOUR_ORG/YOUR_REPO.git
+
             echo "==> Fetch latest code"
-            git fetch --all
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes" git fetch --all
             git reset --hard origin/main
 
             echo "==> Build Go binary"
