@@ -1,0 +1,40 @@
+name: Deploy Backend to VM
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            APP_DIR="/opt/classy-backend"
+            SERVICE="classy-backend"
+
+            echo "==> Go to app directory"
+            cd "$APP_DIR"
+
+            echo "==> Fetch latest code"
+            git fetch --all
+            git reset --hard origin/main
+
+            echo "==> Build Go binary"
+            mkdir -p bin
+            go mod download
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/server ./cmd/api
+
+            echo "==> Restart service"
+            sudo systemctl restart "$SERVICE"
+            sudo systemctl status "$SERVICE" --no-pager
